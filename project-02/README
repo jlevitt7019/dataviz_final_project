@@ -1,0 +1,8 @@
+Levitt Data Visualization Mini Project 2/
+|- Levitt Data Visualization Mini Project 2.Rproj
+|- data/
+|--- NBAchampionsdata
+|- report/
+|--- Report.Rmd
+|--- Report.nb.html 
+|- README.md

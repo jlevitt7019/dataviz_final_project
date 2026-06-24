@@ -1,0 +1,123 @@
+---
+title: "Levitt - Report"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+worldcup <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/main/worldcup.csv")
+```
+
+```{r}
+names(worldcup)
+```
+
+**Most dominant Forwards by Shots**
+```{r}
+worldcup %>%
+  filter(Position == "Forward") %>%
+  arrange(desc(Shots)) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = fct_reorder(Player, Shots), y = Shots)) +
+  geom_col(fill = "#501D83") +
+  coord_flip() +
+  labs(title = "Top 10 Forwards by Shots", x = "Player", y = "Shots") +
+  theme_classic()
+```
+
+```{r}
+worldcup %>%
+  filter(Position == "Forward") %>%
+  arrange(desc(Shots)) %>%
+  slice(1:10) %>%
+  select(Player, Team, Shots)
+```
+
+**Most dominant Defenders by Tackles**
+```{r}
+worldcup %>%
+  filter(Position == "Defender") %>%
+  arrange(desc(Tackles)) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = fct_reorder(Player, Tackles), y = Tackles)) +
+  geom_point(size = 5, color = "#501D83") +
+  geom_segment(aes(x = Player, xend = Player, y = 0, yend = Tackles)) +
+  coord_flip() +
+  labs(title = "Top 10 Defenders by Tackles", x = "Player", y = "Tackles") +
+  theme_classic()
+```
+
+```{r}
+worldcup %>%
+  filter(Position == "Defender") %>%
+  arrange(desc(Tackles)) %>%
+  slice(1:10) %>%
+  select(Player, Team, Tackles)
+```
+
+**Most dominant Goalkeepers by Saves versus Time Played**
+```{r}
+worldcup %>%
+  filter(Position == "Goalkeeper") %>%
+  arrange(desc(Saves)) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Time, y = Saves, label = Player)) +
+  geom_point(size = 3, color = "#501D83") +
+  geom_text(hjust = -0.2, size = 2.5) +
+  labs(title = "Top 10 Goalkeepers Saves versus Time Played", x = "Minutes Played", y = "Saves") +
+  theme_classic()
+```
+
+```{r}
+worldcup %>%
+  filter(Position == "Goalkeeper") %>%
+  arrange(desc(Saves)) %>%
+  slice(1:10) %>%
+  select(Player, Team, Saves, Time)
+```
+
+**Most dominant Midfielder by Passes vs Tackles**
+```{r}
+worldcup %>%
+  filter(Position == "Midfielder") %>%
+  arrange(desc(Passes)) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Passes, y = Tackles, label = Player)) +
+  geom_point(size = 3, color = "#501D83") +
+  geom_text(vjust = 1.7, size = 3) +
+  theme_classic() +
+  labs(title = "Top 10 Midfielders Passes versus Tackles")
+```
+
+```{r}
+worldcup %>%
+  filter(Position == "Midfielder") %>%
+  arrange(desc(Passes)) %>%
+  slice(1:10) %>%
+  select(Player, Team, Passes, Tackles)
+```
+
+**Report**
+
+**A.** What were the original charts you planned to create for this assignments?
+
+For this project I focused on creating four visualizations to help identify the most dominant player in each position in the World Cup. The positions are Forwards, Defenders, Goalkeepers, and Midfielders.
+
+Forwards: A bar chart was created to visualize the forward position players with the greatest number of shots on goal. Shots on goal is a key variable in measuring the dominance of a forward player. The Forwards that showed the most dominance based on this metric were Gyan with 27 shots on goal, Villa with 22 shots on goal, and Messi with 21 shots on goal.
+
+Defenders: A lollipop chart was created to visualize the top 10 players in the Defender position during the World Cup. Number of tackles is a key variable in measuring the success of a Defender. The players in the Defender position that showed the most dominance based on the number of tackles were Vidal, Lahm, and Glen Johnson all with 17 tackles during the World Cup.
+
+Goalkeepers: A scatter plot was created to visualize the number of saves that a Goalkeeper had compared to the minutes played that a Goalkeeper had. Visualizing the data this way helps to show that player with a larger number of saves with a lesser amount of time, would be considered a dominant Goalkeeper. The player that stands out the most here is Enyeama with 20 saves while only playing for 270 minutes.
+
+Midfielder: A scatter plot was created to illustrate the number of passes a Midfielder has compared to the number of tackles that a Midfielder has. A dominant Midfielder would have dominance in both number of passes as well as tackles. When looking at Midfielders in this light Schweinsteiger and Alonso stand out the most. While neither dominates in number of tackles or number of passes, each player is strong in both areas.
+
+**B.** What story could you tell with your plots?
+
+The story that is being told across the four plots is about what being a dominant player in soccer means and how dominance can vary across positions. Instead of making a blanket statement of one player being the best, the goal was to utilize visualizations to determine which players were the best in their specific role. When looking across the four positions what makes a player dominant is not completely straightforward. For example, in regard to Goalkeepers, Enyeama has the same number of saves as Kingson and Neuer with 20 saves however Enyema did this while only playing 270 minutes compared to Kingson’s 510 minutes and Neuer’s 540. Having the same number of saves while playing less time would contribute to a Goalkeeper being more dominant in their position. Another example of this would be Schweinsteiger and Alonso as Midfielders. Neither of these players are particularly dominant in passes or tackles however were very strong in both.  Having a player be competent in both passes and tackles would makes this player a more dominant player than a player who is strong in only one of these skills. The goal of the four visualization was to show standout players by looking at the context of their position and the skills required for their position.
+
+**C.** How did you apply the principles of data visualizations and design for this assignment?
+
+When creating these data visualizations my primary goal was legibility. I tried to follow the principles laid out in the “Glamour of Graphics” presentation by William Chase. For example, in all of the charts I utilized the theme_classic() function instead of the default theme_light () and theme_dark() due to the fact that these themes added visual clutter to the charts such as unnecessary gridlines that were not beneficial to the viewer and that only added visual clutter. Another thing that I implemented across all the charts was consistent color theming using #501D83 (Florida Poly Purple), White, and Black. These colors were chosen due to their easy visibility as well as their alignment with the Florida Poly color scheme. Additionally, I adjusted the charts to only display the Top 10 players for each position, this was due to the fact that having every player for every position shown on the graph created too much clutter for the viewer to be able to interpret the results. I also utilized the coord_flip() function to increase readability on both the bar chart and lollipop chart to avoid text overlapping. Finally, I adjusted font size and positioning to increase readability.

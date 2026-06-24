@@ -1,0 +1,194 @@
+---
+title: "Mini Project 2 - Levitt"
+output: html_notebook
+---
+
+**Load Package**
+```{r}
+library(tidyverse)
+library(plotly)
+```
+
+**Read Data**
+```{r}
+nba <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/refs/heads/main/NBAchampionsdata.csv")
+```
+
+**Cleaning of Data + Summary of Data**
+```{r}
+nba <- nba %>%
+  mutate(
+    Team = str_remove_all(Team, "'"),
+    Team = recode(Team, "Warriorrs" = "Warriors"),
+    TPP  = ifelse(is.na(TPP), 0, TPP)
+  )
+glimpse(nba)
+```
+
+**Championships per team**
+```{r}
+nba %>%
+  group_by(Team) %>%
+  summarise(Championships = n_distinct(Year)) %>%
+  arrange(desc(Championships))
+```
+
+**Total Finals games played per team**
+```{r}
+nba %>%
+  group_by(Team) %>%
+  summarise(Total_Games = n()) %>%
+  arrange(desc(Total_Games))
+```
+
+**Total wins per team in the Finals**
+```{r}
+nba %>%
+  group_by(Team) %>%
+  summarise(Wins = sum(Win)) %>%
+  arrange(desc(Wins))
+```
+
+**NBA Champion Cities**
+```{r}
+team_locations <- tribble(
+  ~Team,       ~Lat,     ~Lon,      
+  "Lakers",    34.0430, -118.2673,
+  "Bulls",     41.8807,  -87.6742,
+  "Spurs",     29.4270,  -98.4375,
+  "Celtics",   42.3662,  -71.0621,
+  "Heat",      25.7814,  -80.1870,
+  "Warriors",  37.7502, -122.2030,
+  "Pistons",   42.6894,  -83.2453,
+  "Rockets",   29.7508,  -95.3621,
+  "Cavaliers", 41.4965,  -81.6882,
+  "Mavericks", 32.7905,  -96.8103,
+  "Sixers",    39.9012,  -75.1720
+)
+
+titles_map <- nba %>%
+  group_by(Team) %>%
+  summarise(Championships = n_distinct(Year)) %>%
+  left_join(team_locations, by = "Team")
+
+usa <- map_data("state")
+
+ggplot() +
+  geom_polygon(data = usa,
+               aes(x = long, y = lat, group = group),
+               fill = "lightgray", color = "white") +
+  geom_point(data = titles_map,
+             aes(x = Lon, y = Lat, size = Championships, color = Team)) +
+  scale_color_manual(values = c(
+    "Lakers"    = "#552583",
+    "Bulls"     = "#CE1141",
+    "Spurs"     = "#8A8D8F",
+    "Celtics"   = "#007A33",
+    "Warriors"  = "#FFC72C",
+    "Pistons"   = "#006BB6",
+    "Heat"      = "#98002E",
+    "Rockets"   = "#CE1141",
+    "Sixers"    = "#006BB6",
+    "Mavericks" = "#00538C",
+    "Cavaliers" = "#860038"
+  )) +
+  geom_text(data = titles_map,
+            aes(x = Lon, y = Lat, label = Team),
+            size = 3, vjust = -1) +
+  coord_fixed(1.3, xlim = c(-125, -67), ylim = c(25, 50)) +
+  labs(title = "NBA Championship Cities",
+       x = NULL, y = NULL) +
+  theme_void() +
+  theme(legend.position = "none")
+```
+
+**Average Points Scored by NBA Champions Per Year**
+```{r}
+pts_year <- nba %>%
+  group_by(Year, Team) %>%
+  summarise(Avg_PTS = round(mean(PTS), 1), .groups = "drop")
+
+p1 <- ggplot(pts_year, aes(x = Year, y = Avg_PTS, color = Team,text = paste0("Year: ", Year,"\nTeam: ", Team,"\nAvg PTS: ", Avg_PTS))) +
+  geom_point(size = 3.2) +
+  scale_color_manual(values = c(
+    "Lakers"    = "#552583",
+    "Bulls"     = "#CE1141",
+    "Spurs"     = "#8A8D8F",
+    "Celtics"   = "#007A33",
+    "Warriors"  = "#FFC72C",
+    "Pistons"   = "#006BB6",
+    "Heat"      = "#98002E",
+    "Rockets"   = "#CE1141",
+    "Sixers"    = "#006BB6",
+    "Mavericks" = "#00538C",
+    "Cavaliers" = "#860038"
+  )) +
+    annotate("text", x = 1984, y = 100,
+           label = "Lakers (Magic Johnson era)",
+           size = 3, color = "#552583", fontface = "bold") +
+  annotate("text", x = 1995, y = 80,
+           label = "Bulls (Jordan era)",
+           size = 3, color = "#CE1141", fontface = "bold") +
+  annotate("text", x = 2003, y = 98,
+           label = "Lakers (Shaq & Kobe era)",
+           size = 3, color = "#552583", fontface = "bold") +
+  labs(
+    title = "Average Points Scored by NBA Champions Per Year",
+    x     = NULL,
+    y     = "Average Points Per Game",
+    color = "Team"
+  ) +
+  theme_minimal()
+
+ggplotly(p1, tooltip = "text")
+```
+
+**Rebounds vs points scored**
+```{r}
+team_record <- nba %>%
+  group_by(Team) %>%
+  summarise(
+    Total_Games = n(),
+    Wins        = sum(Win)
+  )
+
+games_model <- lm(Wins ~ Total_Games, data = team_record)
+summary(games_model)
+
+nba %>%
+  ggplot(aes(x = TRB, y = PTS)) +
+  geom_point(aes(color = factor(Win)), alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "black", linewidth = 1.5) +
+  scale_color_manual(
+    values = c("0" = "#860038", "1" = "#00538C"),
+    labels = c("Loss", "Win"),
+    name   = "Result"
+  ) +
+  labs(
+    title = "Rebounds vs Points Scored in NBA Finals Games",
+    x     = "Total Rebounds",
+    y     = "Points Scored"
+  ) +
+  theme_minimal()
+```
+
+**Report**
+
+**A.** What were the original charts you planned to create for this assignments? What steps were necessary for cleaning and preparing the data?
+
+For this project I made three visualizations to look at the trends across NBA Championship Finals games and teams from 1980 to 2018
+
+  **NBA Championship Cities:** I mapped out the locations of every NBA Championship winning team, with the size of each point corresponding to how many championships the team has won. This was done to help visualize where the championships have been concentrated geographically.The Los Angeles Lakers and Chicago Bulls jump out right away since their points are significantly bigger than every other team on the map.
+
+  **Average Points Scored by NBA Champions Per Year:** I built an interactive scatter plot in plotly showing the average points scored per game by the champion team each year, with each team colors being used to make them easily identifiable. This visualization lets viewers hover over individual points to see the team and the average points that were scored by the championship team in the NBA Finals during that year.
+
+  **Rebounds vs Points Scored:** The scatter plot looks at total rebounds against points scored across NBA Finals games, with wins colored blue and losses colored red. A linear regression line was added on top to make it easier to visualize the actual trend between rebounds and scoring more points.
+
+
+**B.** What story could you tell with your plots? What difficulties did you encounter while creating the visualizations? What additional approaches do you think can be use to explore the data you selected?
+
+Across the three visualizations my goal was to show the story of how two teams were incredibly dominant from 1980 through to 2018. When reviewing the NBA Championship Cities map it is clear the two points are larger than the others, these two teams are the Los Angeles Lakers and the Chicago Bulls. The Lakers have won a total of 10 NBA Championships and the Bulls have won a total of 6 NBA Championships. When looking at the Average Points Scored by NBA Champions Per Year scatter plot we can see that there is a cluster of Bulls championships in the 1990s. This was due to the fact that the Bulls had a dominant team built on Michael Jordan and Scottie Pippen during this era where they were able to win 6 championships. When looking at the Average Points Scored by NBA Champions Per Year scatter plot for the Lakers we can see there are two clusters of championships wins one during the 1980s and one during the early 2000s. This was due to the fact that the Lakers had a dominant player in Magic Johnson during the 1980s and an all star duo of Shaq and Kobe Bryant during the 2000s. The Lakers were able to put together two incredibly dominant rosters that lead them to 10 NBA Championships, which is what differentiates them every other team.
+
+**C.** How did you apply the principles of data visualizations and design for this assignment?
+
+When applying the principles of data visualization legibility was my main focus. I used theme_minimal() on the scatter plots instead of the ggplot default theme since the grid lines and background shading seemed unnecessary and were only creating visual clutter. For the map that I created I used the theme_void() so that there was no axes or background grid. Having an axes and background grid seemed completely unnecessary for this visualization and removing it ultimately created a cleaner and easier to read visualization. When choosing colors I utilized the official colors for each team to represent their points on the NBA Champion Cities and Average Points Scored by NBA Champions Per Year visualizations. For the Rebounds vs points scored I utilized the Mavericks Blue for wins and Cavaliers red for losses to help keep colors consistent. I choose there two colors because I felt like they clear and easy to see but not too vibrant.

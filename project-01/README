@@ -1,0 +1,8 @@
+Data Visualization Mini-Project 1/
+|- Data Visualization Mini-Project 1.Rproj
+|- data/
+|--- worldcup.csv
+|- report/
+|--- report.html
+|--- report.rmd
+|- README.md
