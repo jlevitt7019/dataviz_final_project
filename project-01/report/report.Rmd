@@ -60,15 +60,29 @@ worldcup %>%
 
 **Most dominant Goalkeepers by Saves versus Time Played**
 ```{r}
-worldcup %>%
+library(plotly)
+top_gk <- worldcup %>%
   filter(Position == "Goalkeeper") %>%
   arrange(desc(Saves)) %>%
-  slice(1:10) %>%
-  ggplot(aes(x = Time, y = Saves, label = Player)) +
-  geom_point(size = 3, color = "#501D83") +
-  geom_text(hjust = -0.2, size = 2.5) +
-  labs(title = "Top 10 Goalkeepers Saves versus Time Played", x = "Minutes Played", y = "Saves") +
-  theme_classic()
+  slice(1:10)
+plot_ly(
+  data = top_gk,
+  x = ~Time,
+  y = ~Saves,
+  type = "scatter",
+  mode = "markers+text",
+  text = ~Player,
+  textposition = "middle right",
+  textfont = list(size = 10),
+  marker = list(size = 10, color = "#501D83"),
+  hoverinfo = "text",
+  hovertext = ~paste0(Player, "<br>Minutes Played: ", Time, "<br>Saves: ", Saves)
+) %>%
+  layout(
+    title = "Top 10 Goalkeepers Saves versus Time Played",
+    xaxis = list(title = "Minutes Played"),
+    yaxis = list(title = "Saves")
+  )
 ```
 
 ```{r}

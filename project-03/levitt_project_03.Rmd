@@ -18,6 +18,7 @@ Using the dataset obtained from FSU's [Florida Climate Center](https://climatece
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tidytext)
+library(plotly)
 library(wordcloud)
 weather_tpa <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/master/tpa_weather_2022.csv")
 # random sample 
@@ -74,7 +75,7 @@ weather_tpa <- weather_tpa %>%
   )
 weather_tpa %>%
   ggplot(aes(x = max_temp)) +
-  geom_area(stat = "density", fill = "gray", color = "black") +
+  geom_area(stat = "density", kernel = "gaussian", bw = 0.5, fill = "darkgray", color = "black") +
   labs(x = "Maximum temperature", y = "density") +
   theme_bw()
 ```
@@ -167,15 +168,21 @@ ggplot(density_df, aes(x = x, group = month_name)) +
 weather_tpa <- weather_tpa %>%
   filter(precipitation != -99.99) %>%
   mutate(date = make_date(year, month, day))
-
-ggplot(weather_tpa, aes(x = date, y = precipitation)) +
-  geom_point(color = "lightblue") +
-  labs(
-    title = "Daily Precipitation in Tampa Florida",
-    x = "Date",
-    y = "Precipitation in inches"
-  ) +
-  theme_minimal()
+plot_ly(
+  data = weather_tpa,
+  x = ~date,
+  y = ~precipitation,
+  type = "scatter",
+  mode = "markers",
+  marker = list(color = "lightblue", size = 6),
+  text = ~paste("Date:", date, "<br>Precip:", precipitation, "in"),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Daily Precipitation in TPA Florida",
+    xaxis = list(title = "Date"),
+    yaxis = list(title = "Precipitation")
+  )
 ```
 
 ## PART 2 

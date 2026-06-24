@@ -65,7 +65,6 @@ team_locations <- tribble(
   "Mavericks", 32.7905,  -96.8103,
   "Sixers",    39.9012,  -75.1720
 )
-
 titles_map <- nba %>%
   group_by(Team) %>%
   summarise(Championships = n_distinct(Year)) %>%
